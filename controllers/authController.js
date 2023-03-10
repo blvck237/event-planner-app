@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 const User = require('../models/users.model');
+const Guests = require('../models/guest.model');
+
 router.get('/', (req, res) => {
   // Check if user is logged in
   if (req.session.userId) {
@@ -27,6 +29,14 @@ router.get('/login', (req, res) => {
   });
 });
 
+router.get('/login-guest', (req, res) => {
+  res.render('auth/login-guest', {
+    user: {
+      email: '',
+    },
+  });
+});
+
 router.get('/signup', (req, res) => {
   res.render('auth/signup', {
     viewTitle: 'Welcome to Event Planner',
@@ -44,6 +54,10 @@ router.post('/logout', (req, res) => {
 
 router.post('/login', (req, res) => {
   login(req, res);
+});
+
+router.post('/login-guest', (req, res) => {
+  loginGuest(req, res);
 });
 
 router.post('/signup', (req, res) => {
@@ -71,6 +85,23 @@ function signUp(req, res) {
       } else console.log('Error during account creation : ' + err);
     }
   });
+}
+
+async function loginGuest(req, res) {
+  try {
+    let guest = await Guests.findOne({ email: req.body.email });
+    if (!guest) {
+      throw new Error('Guest not found');
+    }
+    guest = guest.toObject();
+    req.session.userId = guest._id;
+    req.session.role = 'guest';
+    req.app.set('guest', guest)
+    res.redirect('/guests/home/rsvp');
+    return guest;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function login(req, res) {

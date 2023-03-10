@@ -123,3 +123,4 @@ router.get('/:eventId/delete/:id', userAuthMiddleware, (req, res) => {
   );
 });
 
+module.exports = router;

@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const Users = require('../models/users.model');
+const Guests = require('../models/guest.model');
 
 const userAuthMiddleware = async (req, res, next) => {
   const user = await Users.findById(req.session.userId);
@@ -9,4 +11,13 @@ const userAuthMiddleware = async (req, res, next) => {
   next();
 };
 
-module.exports = { userAuthMiddleware };
+const guestAuthMiddleware = async (req, res, next) => {
+  const guest = await Guests.findById(req.session.userId);
+  if (!guest) {
+    return res.redirect('/login-guest');
+  }
+  req.user = guest;
+  next();
+};
+
+module.exports = { userAuthMiddleware, guestAuthMiddleware };
