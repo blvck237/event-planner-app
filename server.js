@@ -4,6 +4,7 @@ const exphbs = require('express-handlebars');
 const bodyparser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const expressSession = require('express-session');
+const guestController = require('./controllers/guestController');
 const authController = require('./controllers/authController');
 const eventController = require('./controllers/eventController');
 const { connect } = require('./models/db');
@@ -30,6 +31,16 @@ app.engine(
     layoutsDir: __dirname + '/views/layouts/',
     helpers: {
       formatDate: require('./helpers/date').formatDate,
+      areEqual: function (arg1, arg2) {
+        return arg1 === arg2;
+      },
+      stringify: function (obj) {
+        return JSON.stringify(obj);
+      },
+      includes: function (arr, entry) {
+        let stringArray = arr.map((item) => item.toString());
+        return stringArray.includes(entry.toString());
+      },
     },
   })
 );
@@ -38,6 +49,8 @@ app.set('view engine', 'hbs');
 // Settign up our routes
 app.use('/', authController);
 app.use('/events', eventController);
+app.use('/guests', guestController);
+
 // Start server
 app.listen(8000, async () => {
   await connect();

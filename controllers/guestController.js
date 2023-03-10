@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { userAuthMiddleware } = require('../middlewares/auth');
+const { userAuthMiddleware, guestAuthMiddleware } = require('../middlewares/auth');
 const Guests = require('../models/guest.model');
 const Users = require('../models/users.model');
 const Events = require('../models/events.model');
@@ -121,6 +121,39 @@ router.get('/:eventId/delete/:id', userAuthMiddleware, (req, res) => {
       }
     }
   );
+});
+
+const updateGuestRSVP = () => async (guestId, rsvp) => {
+  try {
+    // If guest's rsvp is 'yes', change it to 'no' and vice versa
+    const result = await Guests.findOneAndUpdate({ _id: guestId }, { rsvp }, { new: true });
+    return result;
+  } catch (error) {
+    console.log('Error in updating guest RSVP', error);
+  }
+};
+
+// guest home page. This is the page that the guest sees when he logs in
+// On this page, he can see the event details and can RSVP
+router.get('/home/rsvp', guestAuthMiddleware, async (req, res) => {
+  const event = await Events.findById(req.user.event);
+  const creator = await Users.findById(event.createdBy);
+
+  console.log(req.user);
+  res.render('guests/home', {
+    event,
+    user: req.user,
+    creator,
+    updateGuestRSVP,
+  });
+});
+
+router.put('/rsvp', async (req, res) => {
+  const { rsvp, userId, eventId } = req.body;
+  const guest = await Guests.findOne({ _id: userId, event: eventId });
+  guest.rsvp = rsvp;
+  await guest.save();
+  res.json({ success: true });
 });
 
 module.exports = router;
