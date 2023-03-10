@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const exphbs = require('express-handlebars');
 const bodyparser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -27,12 +28,16 @@ app.engine(
     extname: 'hbs',
     defaultLayout: 'mainLayout',
     layoutsDir: __dirname + '/views/layouts/',
+    helpers: {
+      formatDate: require('./helpers/date').formatDate,
+    },
   })
 );
 app.set('view engine', 'hbs');
 
 // Settign up our routes
 app.use('/', authController);
+app.use('/events', eventController);
 // Start server
 app.listen(8000, async () => {
   await connect();
