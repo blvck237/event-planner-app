@@ -37,6 +37,11 @@ router.get('/signup', (req, res) => {
     },
   });
 });
+
+router.post('/logout', (req, res) => {
+  logout(req, res);
+});
+
 router.post('/login', (req, res) => {
   login(req, res);
 });
@@ -91,6 +96,27 @@ async function login(req, res) {
     return user;
   } catch (error) {
     console.log(error);
+  }
+}
+
+async function logout(req, res) {
+  req.session.destroy();
+  req.user = null;
+  res.redirect('/');
+}
+
+function handleValidationError(err, body) {
+  for (field in err.errors) {
+    switch (err.errors[field].path) {
+      case 'fullName':
+        body['fullNameError'] = err.errors[field].message;
+        break;
+      case 'email':
+        body['emailError'] = err.errors[field].message;
+        break;
+      default:
+        break;
+    }
   }
 }
 
