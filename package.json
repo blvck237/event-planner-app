@@ -8,10 +8,14 @@
   },
   "author": "Arooj Fatima",
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.6",
     "express": "^4.16.4",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.17.3",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^5.3.4",
     "nodemon": "^2.0.20"
   }
 }
