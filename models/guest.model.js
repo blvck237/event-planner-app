@@ -23,6 +23,10 @@ const guestSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Events',
   },
+  meals: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Meals',
+  },
 });
 
 // Custom validation for email

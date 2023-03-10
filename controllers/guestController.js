@@ -4,11 +4,33 @@ const { userAuthMiddleware, guestAuthMiddleware } = require('../middlewares/auth
 const Guests = require('../models/guest.model');
 const Users = require('../models/users.model');
 const Events = require('../models/events.model');
+const Meals = require('../models/meals.model');
+
 // Called when you open the guest list page
 router.get('/:eventId', userAuthMiddleware, async (req, res) => {
   try {
     const event = await Events.findById(req.params.eventId);
-    const guestList = await Guests.find({ event: req.params.eventId })
+    const guests = await Guests.find({ event: req.params.eventId })
+      .populate({
+        path: 'meals',
+        model: 'Meals',
+      })
+      .lean();
+
+    const guestList = guests.map((guest) => {
+      const starterMeals = guest.meals.filter((meal) => meal.category === 'starter').map(m => m.name).join(', ');
+      const mainMeals = guest.meals.filter((meal) => meal.category === 'main').map(m => m.name).join(', ');
+      const dessertMeals = guest.meals.filter((meal) => meal.category === 'dessert').map(m => m.name).join(', ');
+      return {
+        ...guest,
+        starterMeals,
+        mainMeals,
+        dessertMeals,
+        // Capitalize the first letter of the rsvp
+        rsvp: guest.rsvp.charAt(0).toUpperCase() + guest.rsvp.slice(1),
+      };
+    });
+
     res.render('guests/list', {
       list: guestList,
       eventId: req.params.eventId,
@@ -138,13 +160,36 @@ const updateGuestRSVP = () => async (guestId, rsvp) => {
 router.get('/home/rsvp', guestAuthMiddleware, async (req, res) => {
   const event = await Events.findById(req.user.event);
   const creator = await Users.findById(event.createdBy);
+  const starterMeals = await Meals.find({
+    _id: { $in: event.meals },
+    category: 'starter',
+  });
+  const mainMeals = await Meals.find({
+    _id: { $in: event.meals },
+    category: 'main',
+  });
+  const dessertMeals = await Meals.find({
+    _id: { $in: event.meals },
+    category: 'dessert',
+  });
+  const sideMeals = await Meals.find({
+    _id: { $in: event.meals },
+    category: 'side',
+  });
 
+  const meals = {
+    starterMeals,
+    mainMeals,
+    dessertMeals,
+    sideMeals,
+  };
   console.log(req.user);
   res.render('guests/home', {
     event,
     user: req.user,
     creator,
     updateGuestRSVP,
+    meals,
   });
 });
 
@@ -153,6 +198,21 @@ router.put('/rsvp', async (req, res) => {
   const guest = await Guests.findOne({ _id: userId, event: eventId });
   guest.rsvp = rsvp;
   await guest.save();
+  res.json({ success: true });
+});
+
+router.put('/:eventId/meals', guestAuthMiddleware, async (req, res) => {
+  const { eventId } = req.params;
+  console.log(req.body, guestAuthMiddleware, eventId);
+  const { meal } = req.body;
+  const { user } = req;
+  const index = user.meals.indexOf(meal);
+  if (index > -1) {
+    user.meals.splice(index, 1);
+  } else {
+    user.meals.push(meal);
+  }
+  await user.save();
   res.json({ success: true });
 });
 

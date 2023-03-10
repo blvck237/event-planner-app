@@ -33,6 +33,10 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Users',
   },
+  meals: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Meals',
+  },
 });
 
 const Events = mongoose.model('Events', eventSchema);

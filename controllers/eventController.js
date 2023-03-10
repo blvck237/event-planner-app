@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Events = require('../models/events.model');
 const Guests = require('../models/guest.model');
+const Meals = require('../models/meals.model');
 const { userAuthMiddleware } = require('../middlewares/auth');
 
 router.get('/', userAuthMiddleware, (req, res) => {
@@ -23,6 +24,26 @@ router.post('/', userAuthMiddleware, (req, res) => {
 async function getData(req, res) {
   try {
     const event = await Events.findById(req.params.id);
+    const starterMeals = await Meals.find({
+      category: 'starter',
+    });
+    const mainMeals = await Meals.find({
+      category: 'main',
+    });
+    const dessertMeals = await Meals.find({
+      category: 'dessert',
+    });
+    const sideMeals = await Meals.find({
+      category: 'side',
+    });
+
+    const meals = {
+      starterMeals,
+      mainMeals,
+      dessertMeals,
+      sideMeals,
+    };
+
     // ['yes', 'no', 'maybe', 'pending']
     const confirmedGuests = await Guests.find({ event: req.params.id, rsvp: 'yes' }).count();
     const pendingGuests = await Guests.find({ event: req.params.id, rsvp: 'pending' }).count();
@@ -34,6 +55,7 @@ async function getData(req, res) {
       pendingGuests,
       totalGuests,
       refusedGuests,
+      meals,
       user: req.user,
     });
   } catch (error) {
@@ -123,6 +145,10 @@ function updateRecord(req, res) {
   });
 }
 
+async function getMeals(query) {
+  const meals = await Meals.find();
+}
+
 router.get('/list', userAuthMiddleware, async (req, res) => {
   try {
     const events = await Events.find({ createdBy: req.user._id });
@@ -166,6 +192,28 @@ router.get('/delete/:id', userAuthMiddleware, (req, res) => {
       console.log('Error in event delete :' + err);
     }
   });
+});
+
+router.put('/:id/meals', userAuthMiddleware, async (req, res) => {
+  const eventId = req.params.id;
+  const { meal } = req.body;
+  const event = await Events.findOne({ _id: eventId });
+  if (!event) {
+    return res.status(404).json({ message: 'Event not found' });
+  }
+  const { meals } = event;
+  // Remove meal
+  const index = meals.indexOf(meal);
+  if (index > -1) {
+    meals.splice(index, 1);
+  } else {
+    // Add meal
+    meals.push(meal);
+  }
+
+  await Events.findOneAndUpdate({ _id: eventId }, { meals });
+
+  res.json({ message: 'Meal added' });
 });
 
 module.exports = router;
