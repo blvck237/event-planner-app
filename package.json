@@ -1,0 +1,17 @@
+{
+  "name": "event-planner",
+  "version": "1.0.0",
+  "description": "This is a simple event planner app that allows you to create events and invite people to them. It is built using the Express framework and uses MongoDB as the database.",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "Arooj Fatima",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.17.3",
+    "nodemon": "^2.0.20"
+  }
+}
