@@ -7,7 +7,8 @@ const expressSession = require('express-session');
 const guestController = require('./controllers/guestController');
 const authController = require('./controllers/authController');
 const eventController = require('./controllers/eventController');
-const { connect } = require('./models/db');
+const { connect, seedDb } = require('./models/db');
+
 const app = express();
 
 // Set public folder
@@ -52,7 +53,16 @@ app.use('/events', eventController);
 app.use('/guests', guestController);
 
 // Start server
-app.listen(8000, async () => {
-  await connect();
-  console.log('Express server started at port', 8000);
-});
+async function startServer(port) {
+  try {
+    await connect();
+    await seedDb();
+    app.listen(port, () => {
+      console.log('Express server started at port', port);
+    });
+  } catch (error) {
+    console.log('Error starting server', error);
+  }
+}
+
+startServer(8000);
