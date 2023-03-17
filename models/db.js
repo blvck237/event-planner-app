@@ -3,7 +3,10 @@ const seedData = require('../data');
 const Meals = require('./meals.model');
 async function connect() {
   // mongoose.set('debug', true);
-  return mongoose.connect('mongodb://localhost:27017/event-planner', { useNewUrlParser: true });
+  return mongoose.connect('mongodb+srv://arooj-user:Hb4mNCQskRS1YQi9@cluster0.akcml2h.mongodb.net/event-planner?retryWrites=true&w=majority', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 }
 
 async function seedCollection(model, data, upsertField) {
